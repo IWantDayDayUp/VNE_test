@@ -2,10 +2,14 @@ import copy, sys, time
 from queue import Queue
 import numpy as np
 from collections import namedtuple
+import pandas as pd
+
+import sys
+sys.path.append(r"D:\迅雷下载\new\VirtualNetworkEmbedding-main")
+
 from util import utils, config
 from data_loader import predata
 from model.base import BaseModel
-import pandas as pd
 
 
 class VNRRWModel(BaseModel):
@@ -116,4 +120,4 @@ def run():
 
     model.experience(None,data,full_request=True,load_model_path='VNR_RW')
 
-run()
+# run()

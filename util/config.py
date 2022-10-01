@@ -9,15 +9,16 @@ import os
 ###################################################################
 # 数据文件
 FILENAME = "VNEModel"
-SnFile = "../data/default/maprecord.txt" # 物理网络数据
-VnFile = "../data/default/virtualnetworkTP.txt" # 虚拟网络数据
-ResultFile = "../../data/result" # 结果文件
-DATAFILE = "../data/" # 文件
+SnFile = "d:/迅雷下载/new/VirtualNetworkEmbedding-main/data/default/maprecord.txt" # 物理网络数据
+VnFile = "d:/迅雷下载/new/VirtualNetworkEmbedding-main/data/default/virtualnetworkTP.txt" # 虚拟网络数据
+ResultFile = "d:/迅雷下载/new/VirtualNetworkEmbedding-main/data/result" # 结果文件
+DATAFILE = "d:/迅雷下载/new/VirtualNetworkEmbedding-main/data/" # 文件
 
 # print(DATAFILE)
 ###################################################################
 # 设置时间，理论上时间长度为无穷
 
+time_unit = 1
 
 TIMES = 200000
 STEP = 1

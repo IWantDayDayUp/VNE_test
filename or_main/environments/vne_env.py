@@ -12,6 +12,10 @@ class EnvMode(enum.Enum):
 
 
 class Substrate:
+    """
+    
+    """
+
     def __init__(self):
         all_connected = False
         while not all_connected:
@@ -99,6 +103,10 @@ class Substrate:
 
 
 class VNR:
+    """
+    
+    """
+    
     def __init__(self, id, vnr_duration_mean_rate, delay, time_step_arrival):
         self.id = id
 
@@ -172,6 +180,10 @@ class VNR:
 
 
 class State:
+    """
+    
+    """
+    
     def __init__(self):
         self.substrate = None
         self.vnrs_collected = None
@@ -197,6 +209,10 @@ class State:
 
 
 class VNEEnvironment(gym.Env):
+    """
+    整个算法的模型: 底层网络 + 虚拟网络
+    """
+    
     def __init__(self, logger):
         self.logger = logger
 
@@ -227,21 +243,31 @@ class VNEEnvironment(gym.Env):
             self.VNRs_INFO[vnr.id] = vnr
             vnr_id += 1
 
+        # 目前存活的已映射VN(正在服务中的VN)
         self.VNRs_SERVING = None
+        # 目前队列里等待映射的VN
         self.VNRs_COLLECTED = None
 
         self.time_step = None
 
+        # 到达的VN总数
         self.total_arrival_vnrs = None
+        # 到达的VN里成功映射的VN总数
         self.total_embedded_vnrs = None
 
         self.episode_reward = None
+        
+        # 累计奖励
         self.revenue = None
         self.acceptance_ratio = None
         self.rc_ratio = None
         self.link_embedding_fails_against_total_fails_ratio = None
 
     def reset(self):
+        """
+        环境重置
+        """
+        
         self.VNRs_SERVING = {}
         self.VNRs_COLLECTED = {}
 
@@ -256,6 +282,7 @@ class VNEEnvironment(gym.Env):
         self.rc_ratio = 0.0
         self.link_embedding_fails_against_total_fails_ratio = 0.0
 
+        # 收集新到达的等待映射的VN
         self.collect_vnrs_new_arrival()
 
         initial_state = State()
@@ -266,36 +293,46 @@ class VNEEnvironment(gym.Env):
         return initial_state
 
     def step(self, action: Action):
+        """
+        执行action, 并返回(下一状态, 奖励, 是否终止, 其他信息)
+        """
         self.time_step += 1
 
+        # 生命周期结束, 需要释放资源的VN
         vnrs_left_from_queue = self.release_vnrs_expired_from_collected(
             action.vnrs_embedding if action.vnrs_postponement is not None and action.vnrs_embedding is not None else []
         )
-
+        # 
         vnrs_serving_completed = self.complete_vnrs_serving()
 
         # processing of embedding & postponement
         if action.vnrs_postponement is not None and action.vnrs_embedding is not None:
+            
+            # 对于成功映射的VN, 落实到底层网络中
             for vnr, embedding_s_nodes, embedding_s_paths in action.vnrs_embedding.values():
                 assert vnr not in vnrs_left_from_queue
                 assert vnr not in vnrs_serving_completed
 
                 self.starting_serving_for_a_vnr(vnr, embedding_s_nodes, embedding_s_paths)
 
+        # 收集新的VN
         self.collect_vnrs_new_arrival()
 
         reward = 0.0
         cost = 0.0
 
+        # 累加当前正在服务中的VN的收益与成本
         for vnr, _, embedding_s_paths in self.VNRs_SERVING.values():
             reward += vnr.revenue
             cost += vnr.cost
 
+        # 是否结束整个VNE流程
         if self.time_step >= config.GLOBAL_MAX_STEPS:
             done = True
         else:
             done = False
 
+        # 下一状态
         next_state = State()
         next_state.substrate = self.SUBSTRATE
         next_state.vnrs_collected = self.VNRs_COLLECTED
@@ -321,12 +358,11 @@ class VNEEnvironment(gym.Env):
 
     def release_vnrs_expired_from_collected(self, vnrs_embedding):
         '''
-        processing of leave_from_queue
-
-        :return: vnrs_left_from_queue
+        需要从等待队列里离开的VN集合
         '''
         vnrs_left_from_queue = []
         for vnr in self.VNRs_COLLECTED.values():
+            # 最大等待时间到了
             if vnr.time_step_leave_from_queue <= self.time_step and vnr.id not in vnrs_embedding:
                 vnrs_left_from_queue.append(vnr)
 
@@ -338,6 +374,9 @@ class VNEEnvironment(gym.Env):
         return vnrs_left_from_queue
 
     def starting_serving_for_a_vnr(self, vnr, embedding_s_nodes, embedding_s_paths):
+        """
+        将VN落实到底层网络, 服务正式开启
+        """
         for s_node_id, v_cpu_demand in embedding_s_nodes.values():
             self.SUBSTRATE.net.nodes[s_node_id]['CPU'] -= v_cpu_demand
 
@@ -345,8 +384,11 @@ class VNEEnvironment(gym.Env):
             for s_link in s_links_in_path:
                 self.SUBSTRATE.net.edges[s_link]['bandwidth'] -= v_bandwidth_demand
 
+        # 服务开启时刻
         vnr.time_step_serving_started = self.time_step
+        # 服务结束时刻
         vnr.time_step_serving_completed = self.time_step + vnr.duration
+        # 实际映射成本
         vnr.cost = utils.get_cost_VNR(vnr, embedding_s_paths)
 
         self.VNRs_SERVING[vnr.id] = (vnr, embedding_s_nodes, embedding_s_paths)
@@ -358,17 +400,17 @@ class VNEEnvironment(gym.Env):
 
     def complete_vnrs_serving(self):
         '''
-        processing of serving_completed
-        :return: vnrs_serving_completed
+        服务到期, 需要离开底层网络的VN集合
         '''
         vnrs_serving_completed = []
         for vnr, embedding_s_nodes, embedding_s_paths in self.VNRs_SERVING.values():
+            # 到期
             if vnr.time_step_serving_completed and vnr.time_step_serving_completed <= self.time_step:
                 vnrs_serving_completed.append(vnr)
 
+                # 释放资源
                 for s_node_id, v_cpu_demand in embedding_s_nodes.values():
                     self.SUBSTRATE.net.nodes[s_node_id]['CPU'] += v_cpu_demand
-
                 for s_links_in_path, v_bandwidth_demand in embedding_s_paths.values():
                     for s_link in s_links_in_path:
                         self.SUBSTRATE.net.edges[s_link]['bandwidth'] += v_bandwidth_demand
@@ -382,6 +424,9 @@ class VNEEnvironment(gym.Env):
         return vnrs_serving_completed
 
     def collect_vnrs_new_arrival(self):
+        """
+        收集当前时刻新到达的VN请求集合
+        """
         for vnr in self.VNRs_INFO.values():
             if vnr.time_step_arrival == self.time_step:
                 self.VNRs_COLLECTED[vnr.id] = vnr

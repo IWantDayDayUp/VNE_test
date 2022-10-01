@@ -1,11 +1,11 @@
 from mains import test
-from model.VNR_RW import VNRRWModel
+# from model.VNR_RW import VNRRWModel
 from util import config
 from data_loader import predata
 import numpy as np
 from model.LVne import NetModel as LModel
 
-# 测试函数-目的用于测试数据
+# 测试函数-用于测试数据
 # test.test_func()
 
 def read_data():
@@ -35,6 +35,8 @@ def run():
         "VN_Life": VN_Life,
         "solution": solution
     }
-    model.experience(data)
+    # model.experience(model, data)
+    model.experience(data)  # 原版的
 
-# run()
+if __name__ == "__main__":
+    run()

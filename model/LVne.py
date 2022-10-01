@@ -37,8 +37,10 @@ class NetModel(BaseModel):
         :return:
         """
 
-        s_input = utils.get_input(nodes=s_nodes, links=s_links,op=1)
-        v_input = utils.get_input(nodes=v_nodes, links=v_links,op=1)
+        # s_input = utils.get_input(nodes=s_nodes, links=s_links,op=1)
+        # v_input = utils.get_input(nodes=v_nodes, links=v_links,op=1)
+        s_input = utils.get_input(nodes=s_nodes, links=s_links)
+        v_input = utils.get_input(nodes=v_nodes, links=v_links)
 
         best_mapping_solution = {
             'code': False,
@@ -125,4 +127,4 @@ def run():
     print(net)
     model.experience(net,data,load_model_path="LVne",full_request = config.full_request)
 
-run()
+# run()

@@ -123,4 +123,4 @@ def run():
     print(net)
     model.experience(net, data, load_model_path="GR-VNE2", full_request=config.FULL_REQUEST)
 
-run()
+# run()

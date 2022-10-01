@@ -52,6 +52,7 @@ class ALGORITHMS(enum.Enum):
     GAT_RL = "GAT_RL"
     MCTS = "MCTS"
 
+# 算数平均值
 #The arithmetic mean of the ten instances is recorded as the final result.
 NUM_RUNS = 1
 
@@ -95,7 +96,6 @@ VNR_LINK_PROBABILITY = 0.5
 # CPU and bandwidth requirements of virtual nodes and links are real numbers uniformly distributed between 1 and 50.
 VNR_CPU_DEMAND_MIN = 1
 VNR_CPU_DEMAND_MAX = 50
-
 VNR_BANDWIDTH_DEMAND_MIN = 1
 VNR_BANDWIDTH_DEMAND_MAX = 50
 
@@ -104,8 +104,13 @@ MAX_EMBEDDING_PATH_LENGTH = 4
 
 ALPHA = 0.8
 
+# 是否允许映射到同一个底层节点上
 ALLOW_EMBEDDING_TO_SAME_SUBSTRATE_NODE = False
+
+# 距离约束
 LOCATION_CONSTRAINT = True
+
+# 
 RT_TIME_STEP = 100
 
 FIGURE_START_TIME_STEP = int(GLOBAL_MAX_STEPS * 0.02)

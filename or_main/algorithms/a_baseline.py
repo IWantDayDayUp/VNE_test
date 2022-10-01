@@ -5,10 +5,19 @@ import copy
 from or_main.common import utils
 
 class Action:
+    """
+    Action 类
+    """
     def __init__(self):
+        # 暂时未成功映射的VN
         self.vnrs_postponement = None
+        
+        # 成功映射的VN: (vn对象, 节点映射结果, 链路映射结果)
         self.vnrs_embedding = None
+        
+        # 节点映射阶段失败的VN数量
         self.num_node_embedding_fails = 0
+        # 链路映射阶段失败的VN数量
         self.num_link_embedding_fails = 0
 
     def __str__(self):
@@ -38,10 +47,7 @@ class BaselineVNEAgent:
 
     def find_substrate_nodes(self, copied_substrate, vnr):
         '''
-        Execute Step 1
-        :param copied_substrate: copied substrate network
-        :param vnr: virtual network request
-        :return: embedded substrate nodes
+        计算给定vn的节点映射结果
         '''
         subset_S_per_v_node = {}
         embedding_s_nodes = {}
@@ -112,6 +118,9 @@ class BaselineVNEAgent:
         return embedding_s_nodes
 
     def find_substrate_path(self, copied_substrate, vnr, embedding_s_nodes):
+        """
+        为给定vn寻找最短底层路径
+        """
         embedding_s_paths = {}
 
         # mapping the virtual nodes and substrate_net nodes
@@ -187,6 +196,11 @@ class BaselineVNEAgent:
         return s_cpu_capacity * total_node_bandwidth
 
     def node_mapping(self, VNRs_COLLECTED, COPIED_SUBSTRATE, action):
+        """
+        将一段时间内收集的VN请求按照收益排序, 降序映射
+        并更新action信息
+        返回节点映射结果
+        """
         # Sort the requests according to their revenues
         sorted_vnrs = sorted(
             VNRs_COLLECTED.values(), key=lambda vnr: vnr.revenue, reverse=True
@@ -206,6 +220,9 @@ class BaselineVNEAgent:
         return sorted_vnrs_and_node_embedding
 
     def link_mapping(self, sorted_vnrs_and_node_embedding, COPIED_SUBSTRATE, action):
+        """
+        按照节点映射结果进行链路映射, 并更新action信息
+        """
         for vnr, embedding_s_nodes in sorted_vnrs_and_node_embedding:
             embedding_s_paths = self.find_substrate_path(COPIED_SUBSTRATE, vnr, embedding_s_nodes)
 
@@ -215,10 +232,17 @@ class BaselineVNEAgent:
                 action.vnrs_embedding[vnr.id] = (vnr, embedding_s_nodes, embedding_s_paths)
 
     def get_action(self, state):
+        """
+        根据当前state做出一个action
+        
+        state: 传入的当前环境的状态
+        """
         self.time_step += 1
 
+        # 构造一个行动类的对象
         action = Action()
 
+        # 
         if self.time_step < self.next_embedding_epoch:
             action.num_node_embedding_fails = self.num_node_embedding_fails
             action.num_link_embedding_fails = self.num_link_embedding_fails
@@ -227,13 +251,16 @@ class BaselineVNEAgent:
         action.vnrs_postponement = {}
         action.vnrs_embedding = {}
 
+        # 底层网络副本
         COPIED_SUBSTRATE = copy.deepcopy(state.substrate)
+        # 已映射的VN
         VNRs_COLLECTED = state.vnrs_collected
 
         self.embedding(VNRs_COLLECTED, COPIED_SUBSTRATE, action)
 
         assert len(action.vnrs_postponement) + len(action.vnrs_embedding) == len(VNRs_COLLECTED)
 
+        # 下一个映射的窗口(将这一窗口里的VN按收益排序, 依次映射)
         self.next_embedding_epoch += self.time_window_size
 
         action.num_node_embedding_fails = self.num_node_embedding_fails
@@ -242,6 +269,9 @@ class BaselineVNEAgent:
         return action
 
     def embedding(self, VNRs_COLLECTED, COPIED_SUBSTRATE, action):
+        """
+        将收集好的一系列VN映射到底层网络中
+        """
         #####################################
         # step 1 - Greedy Node Mapping      #
         #####################################

@@ -266,7 +266,7 @@ def read_SN_VN(file1, file2):
             v_node.append(vn_link[i][j][j])
         VN_Node.update({i: v_node})
     print("数据读取完毕！！！")
-    print("*"*100)
+    print("*" * 100)
     return (solution, SN_Link, SN_Node, VN_Link, VN_Node, VN_Life)
 
 def get_CostRatio_UtilizationRate(file):  # 从文件中读取资源利用率和成本比，返回CostRatio和UtilizationRate两个字典
@@ -385,6 +385,9 @@ def get_vn_data(n):
 
 import os,json
 def save_data(data,n):
+    """
+    将底层网络模型 + 虚拟网络 数据保存为 "json" 格式
+    """
 
     SN_Link = np.array(data["SN_Link"]).tolist()
     SN_Node = np.array(data["SN_Node"]).tolist()
@@ -430,7 +433,7 @@ def get_data(n=1000):
 
 # 服从泊松分布
 def arrive_time(n):
-    arrive = np.random.poisson(20,n)
+    arrive = np.random.poisson(20, n)
     arrive = np.cumsum(arrive)
     # print(arrive)
     return arrive

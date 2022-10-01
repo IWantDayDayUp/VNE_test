@@ -31,6 +31,10 @@ class A3C_GCN_State:
 
 
 class A3C_GCN_Action:
+    """
+    A3C动作类: 将虚拟节点n_v映射到底层节点n_s上
+    """
+    
     def __init__(self):
         self.v_node = None
         self.s_node = None
@@ -44,6 +48,7 @@ class A3C_GCN_Action:
 
 
 class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
+    
     def __init__(self, logger):
         self.logger = logger
 
@@ -51,17 +56,21 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
         self.episode_reward = None
         self.num_reset = 0
 
+        # 相关评价指标
         self.revenue = None
         self.acceptance_ratio = None
         self.rc_ratio = None
         self.link_embedding_fails_against_total_fails_ratio = None
 
+        # VN总数, 成功总数
         self.total_arrival_vnrs = 0
         self.total_embedded_vnrs = 0
 
+        # 底层网络
         self.substrate = Substrate()
         # self.copied_substrate = copy.deepcopy(self.substrate)
-        self.vnrs = []
+        
+        self.vnrs = []  # 虚拟网络集合
         self.vnr_idx = 0
         self.vnr = None
         self.v_node_embedding_success = []
@@ -69,6 +78,7 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
         self.already_embedded_v_nodes = []
         self.embedding_s_nodes = None
 
+        # 上一时刻的收益与成本
         self.previous_step_revenue = None
         self.previous_step_cost = None
 
@@ -81,6 +91,9 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
         self.current_v_cpu_demand = None
 
     def reset(self):
+        """
+        环境重置
+        """
         self.time_step = 0
 
         self.episode_reward = 0.0
@@ -137,7 +150,12 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
         return initial_state
 
     def step(self, action: A3C_GCN_Action):
+        """
+        执行action, 返回(下一状态, reward, 是否结束, (收益, 接受率, R/C, 链路失败率))
+        """
         self.time_step += 1
+        
+        # 当前VN
         self.vnr = self.vnrs[self.vnr_idx]
 
         embedding_success = True
@@ -151,45 +169,55 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
         sum_v_bandwidth_demand = 0.0  # for r_c calculation
         sum_s_bandwidth_embedded = 0.0  # for r_c calculation
 
+        # 资源约束不满足 或 当前底层节点已经被占用
         if any(node_embedding_fail_conditions):
             embedding_success = False
-
         else:
             # Success for node embedding
+            # 当前虚拟节点的需求
             v_cpu_demand = self.vnr.net.nodes[action.v_node]['CPU']
+            # 更新映射关系
             self.embedding_s_nodes[action.v_node] = action.s_node
 
-            # Start to try link embedding
+            # 链路映射: Start to try link embedding
             for already_embedded_v_node in self.already_embedded_v_nodes:
                 if self.vnr.net.has_edge(action.v_node, already_embedded_v_node):
+                    # 邻接虚拟链路需求
                     v_bandwidth_demand = self.vnr.net[action.v_node][already_embedded_v_node]['bandwidth']
-
                     sum_v_bandwidth_demand += v_bandwidth_demand
 
+                    # 将满足链路需求的底层链路挑出来
                     subnet = nx.subgraph_view(
                         self.substrate.net,
                         filter_edge=lambda node_1_id, node_2_id: \
                             True if self.substrate.net.edges[(node_1_id, node_2_id)]['bandwidth'] >= v_bandwidth_demand else False
                     )
 
+                    # 该虚拟链路的两个端节点
                     src_s_node = self.embedding_s_nodes[already_embedded_v_node]
                     dst_s_node = self.embedding_s_nodes[action.v_node]
+                    
+                    # 寻找虚拟路径
                     if len(subnet.edges) == 0 or not nx.has_path(subnet, source=src_s_node, target=dst_s_node):
+                        # 不存在虚拟路径
                         embedding_success = False
                         del self.embedding_s_nodes[action.v_node]
                         break
                     else:
+                        # 找出10条最短路径
                         MAX_K = 10
                         shortest_s_path = utils.k_shortest_paths(subnet, source=src_s_node, target=dst_s_node, k=MAX_K)[0]
+                        
+                        # 最短路径大于最大映射长度
                         if len(shortest_s_path) > config.MAX_EMBEDDING_PATH_LENGTH:
                             embedding_success = False
                             break
                         else:
-                            # SUCCESS --> EMBED VIRTUAL LINK!
+                            # 成功找到一条底层链路
                             s_links_in_path = []
                             for node_idx in range(len(shortest_s_path) - 1):
                                 s_links_in_path.append((shortest_s_path[node_idx], shortest_s_path[node_idx + 1]))
-
+                            # 更新底层资源
                             for s_link in s_links_in_path:
                                 assert self.substrate.net.edges[s_link]['bandwidth'] >= v_bandwidth_demand
                                 self.substrate.net.edges[s_link]['bandwidth'] -= v_bandwidth_demand
@@ -205,31 +233,42 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
         if embedding_success:
             # ALL SUCCESS --> EMBED VIRTUAL NODE!
             assert self.substrate.net.nodes[action.s_node]['CPU'] >= v_cpu_demand
+            # 更新节点资源
             self.substrate.net.nodes[action.s_node]['CPU'] -= v_cpu_demand
+            # 该底层节点被占用
             self.current_embedding[action.s_node] = 1
+            # 以映射虚拟节点
             self.already_embedded_v_nodes.append(action.v_node)
+            # 当前虚拟节点映射结果
             self.v_node_embedding_success.append(embedding_success)
         else:
             self.v_node_embedding_success.append(embedding_success)
+            
+            # 节点映射成功, 但链路映射失败, 回收该节点的映射方案
             if action.v_node in self.embedding_s_nodes:
                 del self.embedding_s_nodes[action.v_node]
 
 
         # 이 지점에서 self.num_processed_v_nodes += 1 매우 중요: 이후 next_state 및 reward 계산에 영향을 줌
+        # 已处理的虚拟节点数
         self.num_processed_v_nodes += 1
 
+        # 计算reward
         reward = self.get_reward(
             embedding_success, v_cpu_demand, sum_v_bandwidth_demand, sum_s_bandwidth_embedded, action, r_s
         )
 
         done = False
+        # 是否处理完所有虚拟节点
         # if not embedding_success or self.num_processed_v_nodes == len(self.vnr.net.nodes):
         if self.num_processed_v_nodes == len(self.vnr.net.nodes):
+            # 是否全部虚拟节点都映射成功
             if sum(self.v_node_embedding_success) == len(self.vnr.net.nodes):
                 self.vnr_embedding_success_count.append(1)
             else:
                 self.vnr_embedding_success_count.append(0)
 
+            # 是否结束整个VNE
             if self.vnr_idx == len(self.vnrs) - 1 or sum(self.vnr_embedding_success_count[-3:]) == 0:
             # if self.vnr_idx == len(self.vnrs) - 1:
                 # print(self.vnr_embedding_success_count)
@@ -237,15 +276,21 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
                 done = True
                 next_state = A3C_GCN_State(None, None, None, None)
             else:
+                # 不结束
+                
+                # 下一个VN的id
                 self.vnr_idx += 1
                 self.vnr = self.vnrs[self.vnr_idx]
+                # 虚拟节点排序
                 self.sorted_v_nodes = utils.get_sorted_v_nodes_with_node_ranking(
                     vnr=self.vnr, type_of_node_ranking=config.TYPE_OF_VIRTUAL_NODE_RANKING.TYPE_2
                 )
-                self.num_processed_v_nodes = 0
+                self.num_processed_v_nodes = 0  # 已处理的虚拟节点数量
+                # 当前要映射的虚拟节点及其CPU需求
                 self.current_v_node, current_v_node_data, _ = self.sorted_v_nodes[self.num_processed_v_nodes]
                 self.current_v_cpu_demand = current_v_node_data['CPU']
 
+                # 特征矩阵
                 substrate_features, substrate_edge_index, vnr_features = self.get_state_information(
                     self.current_v_node, self.current_v_cpu_demand
                 )
@@ -253,11 +298,12 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
                 self.already_embedded_v_nodes = []
                 self.current_embedding = [0] * len(self.substrate.net.nodes)
                 self.v_node_embedding_success = []
-
         else:
+            # 下一个需要处理的节点
             self.current_v_node, current_v_node_data, _ = self.sorted_v_nodes[self.num_processed_v_nodes]
+            # 该节点的CPU需求
             self.current_v_cpu_demand = current_v_node_data['CPU']
-
+            # 获取特征矩阵
             substrate_features, substrate_edge_index, vnr_features = self.get_state_information(
                 self.current_v_node, self.current_v_cpu_demand
             )
@@ -268,6 +314,9 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
         return next_state, reward, done, info
 
     def get_state_information(self, current_v_node, current_v_cpu_demand):
+        """
+        获取特征矩阵
+        """
         # Substrate Initial State
         s_cpu_capacity = self.substrate.initial_s_cpu_capacity
         s_bandwidth_capacity = self.substrate.initial_s_node_total_bandwidth
@@ -316,25 +365,37 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
         return substrate_features, substrate_geometric_data.edge_index, vnr_features
 
     def get_reward(self, embedding_success, v_cpu_demand, sum_v_bandwidth_demand, sum_s_bandwidth_embedded, action, r_s):
+        """
+        计算奖励reward
+        """
+        # 已处理虚拟节点数量占总数量的比例
         gamma_action = self.num_processed_v_nodes / len(self.vnr.net.nodes)
         r_a = 100 * gamma_action if embedding_success else -100 * gamma_action
 
         # calculate r_c
         if embedding_success:
+            # 该节点映射应该花费的成本
             step_revenue = v_cpu_demand + sum_v_bandwidth_demand
+            # 实际花费的成本
             step_cost = v_cpu_demand + sum_s_bandwidth_embedded
+            
+            # 增量
             delta_revenue = step_revenue - self.previous_step_revenue
             delta_cost = step_cost - self.previous_step_cost
+            
+            # 分母是否为0
             if delta_cost == 0.0:
                 r_c = 1.0
             else:
                 r_c = delta_revenue / delta_cost
+                
+            # 更新
             self.previous_step_revenue = step_revenue
             self.previous_step_cost = step_cost
         else:
             r_c = 1.0
 
-        # calculate eligibility trace
+        # calculate eligibility trace(资格追踪??)
         for s_node in self.substrate.net.nodes:
             if action.s_node == s_node:
                 self.egb_trace[s_node] = self.decay_factor_for_egb_trace * (self.egb_trace[s_node] + 1)

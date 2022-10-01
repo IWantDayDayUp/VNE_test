@@ -39,6 +39,9 @@ def get_revenue_VNR(vnr):
 
 
 def get_cost_VNR(vnr, embedding_s_paths):
+    """
+    实际映射成本
+    """
     cost_cpu = sum((v_cpu_demand['CPU'] for _, v_cpu_demand in vnr.net.nodes(data=True)))
 
     cost_embedded_s_path = sum(
