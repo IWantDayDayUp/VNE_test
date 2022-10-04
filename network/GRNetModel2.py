@@ -6,7 +6,7 @@ import numpy as np
 import torch.nn.functional as F
 
 """
-端到端 虚拟网络嵌入，优化了Encoder层
+端到端 虚拟网络嵌入, 优化了Encoder层
 """
 
 
@@ -56,19 +56,19 @@ class AttentionLayer(torch.nn.Module):
         K = K.view(bsz, -1, self.nheads, self.input_dim // self.nheads).permute(0, 2, 1, 3)
         V = V.view(bsz, -1, self.nheads, self.input_dim // self.nheads).permute(0, 2, 1, 3)
 
-        # Q, K相乘除以scale，这是计算scaled dot product attention的第一步
+        # Q, K相乘除以scale, 这是计算scaled dot product attention的第一步
         energy = torch.matmul(Q, K.permute(0, 1, 3, 2)) / self.scale
 
         if mask is not None:
             energy = energy.masked_fill(mask == 0, -1e10)
 
-        # 然后对Q,K相乘的结果计算softmax加上dropout，这是计算scaled dot product attention的第二步：
+        # 然后对Q,K相乘的结果计算softmax加上dropout, 这是计算scaled dot product attention的第二步：
         attention = self.dropout(torch.softmax(energy, dim=-1))
 
-        # 第三步，attention结果与V相乘
+        # 第三步, attention结果与V相乘
         x = torch.matmul(attention, V)
 
-        # 最后将多头排列好，就是multi-head attention的结果了
+        # 最后将多头排列好, 就是multi-head attention的结果了
 
         x = x.permute(0, 2, 1, 3).contiguous()
         x = x.view(bsz, -1, self.nheads * (self.input_dim // self.nheads))
@@ -154,7 +154,7 @@ class Encoder(torch.nn.Module):
 
     def norm(self,x):
         """
-        避免数据数值过大，显示为nan
+        避免数据数值过大, 显示为nan
         :param x:
         :return:
         """
@@ -299,8 +299,8 @@ class GRNet(torch.nn.Module):
     def get_node_mapping(self, s_nodes, v_nodes, s_links, v_links):
         """
         :param s_node_indexes: 节点索引,(batch_size,s_node_numbers,1)
-        :param s_inputs: 物理节点特征输入，(batch_size,s_node_numbers,nfeatures)
-        :param v_input:  虚拟节点特征输入，(v_node_numbers,nfeatures)
+        :param s_inputs: 物理节点特征输入, (batch_size,s_node_numbers,nfeatures)
+        :param v_input:  虚拟节点特征输入, (v_node_numbers,nfeatures)
         :return:
         """
 
@@ -361,7 +361,7 @@ class GRNet(torch.nn.Module):
             output_weight = output_weight - self.eta * not_satisfying_nodes  # 剔除不合适的节点
             output_weights.append(output_weight)
 
-            # 注意力机制，用于计算decoder_input，作为下一次的输入
+            # 注意力机制, 用于计算decoder_input, 作为下一次的输入
             attention_weight = self.calc_attention_weight(s_node_numbers,encoder_output, decoder_output)
             decoder_input = torch.einsum('ij,ijk->ik', attention_weight, encoder_output)
             decoder_input = torch.unsqueeze(

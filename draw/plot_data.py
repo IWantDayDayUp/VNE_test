@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-from util import config
 import pandas as pd
 import os
+# from VNE_TEST.util import config
 
 def create_graph(matrix):
     fig, ax = plt.subplots()
@@ -38,7 +38,7 @@ def plot_data(x,y,x_label,y_label,title):
     plt.show()
 
 def plot_result_data():
-    path = "../data/result"
+    path = "D:/VNE_test/data/result"
     files = os.listdir(path)
     new_files = []
     MAX_LEN = 0
@@ -50,7 +50,8 @@ def plot_result_data():
 
     columns = ["r/c","accept_ratio","revenus","time"]
 
-    time_step = 18000
+    # time_step = 18000
+    time_step = 51
 
     performance_acceptance_ratio = np.zeros((len(files),time_step),dtype=float)
     performance_revenue = np.zeros((len(files),time_step),dtype=float)

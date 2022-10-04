@@ -389,31 +389,31 @@ def save_data(data,n):
     将底层网络模型 + 虚拟网络 数据保存为 "json" 格式
     """
 
-    SN_Link = np.array(data["SN_Link"]).tolist()
-    SN_Node = np.array(data["SN_Node"]).tolist()
-    VN_Link = {key:np.array(value).tolist() for key,value in data["VN_Link"].items()}
-    VN_Node = {key:np.array(value).tolist() for key,value in data["VN_Node"].items()}
-    VN_Life = {key:np.array(value).tolist() for key,value in data["VN_Life"].items()}
-    VN_Arrive_Time = np.array(data["VN_Arrive_Time"]).tolist()
-    a = {
-        "SN_Link": SN_Link,
-        "SN_Node": SN_Node,
-        "VN_Node": VN_Node,
-        "VN_Link": VN_Link,
-        "VN_Life": {0: VN_Life},
-        "VN_Arrive_Time": VN_Arrive_Time,
-    }
-    b = json.dumps(a)
-    try:
-        f = open('../../data/data/{}.json'.format(n), 'w')
-        f.write(b)
-        f.close()
-        np.save('../../data/data/{}.npy'.format(n),data)
-    except:
-        f = open('../data/data/{}.json'.format(n), 'w')
-        f.write(b)
-        f.close()
-        np.save('../data/data/{}.npy'.format(n), data)
+    # SN_Link = np.array(data["SN_Link"]).tolist()
+    # SN_Node = np.array(data["SN_Node"]).tolist()
+    # VN_Link = {key:np.array(value).tolist() for key,value in data["VN_Link"].items()}
+    # VN_Node = {key:np.array(value).tolist() for key,value in data["VN_Node"].items()}
+    # VN_Life = {key:np.array(value).tolist() for key,value in data["VN_Life"].items()}
+    # VN_Arrive_Time = np.array(data["VN_Arrive_Time"]).tolist()
+    # a = {
+    #     "SN_Link": SN_Link,
+    #     "SN_Node": SN_Node,
+    #     "VN_Node": VN_Node,
+    #     "VN_Link": VN_Link,
+    #     "VN_Life": {0: VN_Life},
+    #     "VN_Arrive_Time": VN_Arrive_Time,
+    # }
+    # b = json.dumps(a)
+    # try:
+    #     f = open('../../data/data/{}.json'.format(n), 'w')
+    #     f.write(b)
+    #     f.close()
+    #     np.save('../../data/data/{}.npy'.format(n),data)
+    # except:
+    #     f = open('../data/data/{}.json'.format(n), 'w')
+    #     f.write(b)
+    #     f.close()
+    #     np.save('../data/data/{}.npy'.format(n), data)
     print("数据保存完毕")
 
 

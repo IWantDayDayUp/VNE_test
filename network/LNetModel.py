@@ -47,7 +47,7 @@ class LNet(torch.nn.Module):
 
     def norm(self,x):
         """
-        避免数据数值过大，显示为nan
+        避免数据数值过大, 显示为nan
         :param x:
         :return:
         """
@@ -117,7 +117,7 @@ class LNet(torch.nn.Module):
             ) - cannot_node*self.eta
             output_weights.append(output_weight)
 
-            # 输入 dropout后的e0 和 decoder的输入， 计算出attetion权重，并输出权重
+            # 输入 dropout后的e0 和 decoder的输入,  计算出attetion权重, 并输出权重
             attention_weight = F.softmax(
                 torch.squeeze(
                     self.v2(torch.tanh(
