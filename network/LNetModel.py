@@ -148,7 +148,8 @@ class LNet(torch.nn.Module):
             actions += selected_actions
 
         # 随机抽取的解
-        shuffled_node_mapping = np.array([list(output) for output in decoder_outputs]).T
+        # shuffled_node_mapping = np.array([list(output) for output in decoder_outputs]).T
+        shuffled_node_mapping = np.array([list(output.cpu()) for output in decoder_outputs]).T
         # 原始排序的解
         original_node_mapping = np.zeros(shape=(batch_size, v_node_numbers), dtype=int)
 

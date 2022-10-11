@@ -344,6 +344,7 @@ class BaseModel(object):
                     added_node_cost = cost_matrix['cost_node_matrix'].sum()
                     added_link_cost = cost_matrix['cost_link_matrix'].sum() / 2.0
                     added_total_cost = added_node_cost + added_link_cost
+                    
                     longterm_revenue += added_revenue
                     longterm_cost += added_total_cost
 

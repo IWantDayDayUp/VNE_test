@@ -42,6 +42,7 @@ class NetModel(BaseModel):
         s_input = utils.get_input(nodes=s_nodes, links=s_links)
         v_input = utils.get_input(nodes=v_nodes, links=v_links)
 
+        # 该虚拟网络的映射结果
         best_mapping_solution = {
             'code': False,
             'mapping_nodes': [],
@@ -51,7 +52,10 @@ class NetModel(BaseModel):
         baseline = -1
 
         device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
+        # device = torch.device('cuda:0' if torch.cuda.is_available else 'cpu')
+        print(device)
         if config.IS_GPU:
+            print(net)
             net.to(device=device)
 
         ceiterion = torch.optim.SGD(net.parameters(), lr=1e-5,momentum=.9)
@@ -62,6 +66,7 @@ class NetModel(BaseModel):
                 s_node_indexes = s_node_indexes.cuda()
                 s_inputs = s_inputs.cuda()
                 v_input = v_input.cuda()
+
             node_mapping_solutions, shuffled_node_mapping_solutions,output_weights = net.get_node_mapping(
                 s_node_indexes=s_node_indexes,
                 s_inputs=s_inputs,

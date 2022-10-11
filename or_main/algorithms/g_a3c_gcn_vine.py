@@ -40,7 +40,7 @@ class A3C_GCN_VNEAgent(BaselineVNEAgent):
 
     def get_node_action(self, state):
         """
-        获得节点映射action
+        获得节点映射action(这个函数就没有用到过)
         """
         # 初始action对象
         action = A3C_GCN_Action()
