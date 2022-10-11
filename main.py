@@ -1,9 +1,10 @@
-from mains import test
-# from model.VNR_RW import VNRRWModel
 from util import config
 from data_loader import predata
 import numpy as np
 from model.LVne import NetModel as LModel
+from network.LNetModel import LNet
+
+import torch
 
 # 测试函数-用于测试数据
 # test.test_func()
@@ -25,18 +26,24 @@ def run():
     # 读取数据e
     (solution, SN_Link, SN_Node, VN_Link, VN_Node, VN_Life) = predata.read_SN_VN(config.SnFile, config.VnFile)
 
-    model = LModel(solution, SN_Link, SN_Node, VN_Link, VN_Node, VN_Life)
+    # model = LModel(solution, SN_Link, SN_Node, VN_Link, VN_Node, VN_Life)
 
-    data = {
-        "SN_Link": SN_Link,
-        "SN_Node": SN_Node,
-        "VN_Node": VN_Node,
-        "VN_Link": VN_Link,
-        "VN_Life": VN_Life,
-        "solution": solution
-    }
-    # model.experience(model, data)
-    model.experience(data)  # 原版的
+    # data = {
+    #     "SN_Link": SN_Link,
+    #     "SN_Node": SN_Node,
+    #     "VN_Node": VN_Node,
+    #     "VN_Link": VN_Link,
+    #     "VN_Life": VN_Life,
+    #     "solution": solution
+    # }
+
+    # net = LNet(nhidden=128, batch_size=10, nembedding=128, dropout=.5)
+
+    # model.experience(net, data)
+    # model.experience(data)  # 原版的
+    
+    for i in range(10):
+        print(VN_Life[0][i])
 
 if __name__ == "__main__":
     run()
