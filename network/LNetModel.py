@@ -33,6 +33,7 @@ class LNet(torch.nn.Module):
         node_mappings = torch.from_numpy(node_mappings).long()
         if config.IS_GPU:
             node_mappings = node_mappings.cuda()
+        # print("node_mappings.size(): ", node_mappings.size())
         v_node_num = node_mappings.size()[1]
         loss = 0
         for i in range(v_node_num):

@@ -337,6 +337,10 @@ class BaseModel(object):
                     current_solution = best_mapping_solution
                     mapping_nodes = current_solution.get("mapping_nodes")
                     mapping_links = current_solution.get("mapping_links")
+                    
+                    print(mapping_nodes)
+                    print(mapping_links)
+                    
                     cost_matrix = utils.get_cost_matrix(n, v_nodes, mapping_nodes, mapping_links)
 
                     ## 性能

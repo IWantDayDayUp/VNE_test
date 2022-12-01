@@ -53,9 +53,9 @@ class NetModel(BaseModel):
 
         device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
         # device = torch.device('cuda:0' if torch.cuda.is_available else 'cpu')
-        print(device)
+        # print(device)
         if config.IS_GPU:
-            print(net)
+            # print(net)
             net.to(device=device)
 
         ceiterion = torch.optim.SGD(net.parameters(), lr=1e-5,momentum=.9)

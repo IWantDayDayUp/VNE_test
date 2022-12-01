@@ -28,7 +28,7 @@ class Action:
 
 class BaselineVNEAgent:
     def __init__(
-            self, logger, time_window_size, agent_type, type_of_virtual_node_ranking,
+            self, logger, time_window_size, agent_type, agent_mode, type_of_virtual_node_ranking,
             allow_embedding_to_same_substrate_node, max_embedding_path_length
     ):
         self.logger = logger
@@ -41,6 +41,7 @@ class BaselineVNEAgent:
         self.next_embedding_epoch = time_window_size
         
         self.agent_type = agent_type
+        self.agent_mode = agent_mode
         
         self.type_of_virtual_node_ranking = type_of_virtual_node_ranking
         self.allow_embedding_to_same_substrate_node = allow_embedding_to_same_substrate_node
@@ -198,6 +199,12 @@ class BaselineVNEAgent:
                 action.vnrs_postponement[vnr.id] = vnr
             else:
                 action.vnrs_embedding[vnr.id] = (vnr, embedding_s_nodes, embedding_s_paths)
+    
+    def save_model(self, ):
+        """
+        
+        """
+        pass
 
     def get_action(self, state):
         """

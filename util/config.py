@@ -9,10 +9,10 @@ import os
 ###################################################################
 # 数据文件
 FILENAME = "VNEModel"
-SnFile = "d:/迅雷下载/new/VirtualNetworkEmbedding-main/data/default/maprecord.txt" # 物理网络数据
-VnFile = "d:/迅雷下载/new/VirtualNetworkEmbedding-main/data/default/virtualnetworkTP.txt" # 虚拟网络数据
-ResultFile = "d:/迅雷下载/new/VirtualNetworkEmbedding-main/data/result" # 结果文件
-DATAFILE = "d:/迅雷下载/new/VirtualNetworkEmbedding-main/data/" # 文件
+SnFile = "d:/VNE_TEST/data/default/maprecord.txt" # 物理网络数据
+VnFile = "d:/VNE_TEST/data/default/virtualnetworkTP.txt" # 虚拟网络数据
+ResultFile = "d:/VNE_TEST/data/result" # 结果文件
+DATAFILE = "d:/VNE_TEST/data/" # 文件
 
 # print(DATAFILE)
 ###################################################################
