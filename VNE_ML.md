@@ -30,6 +30,36 @@ reward:
 
 [Automatic Virtual Network Embedding - A DRL Approach with GCN](https://geminilight.cn/2020/07/13/RP%20-%20%E7%A7%91%E7%A0%94%E8%AE%BA%E6%96%87/paper-nfv-vne-dlr-gcn/)
 
+1. State
+
+    vector向量:
+
+    - 节点初始CPU
+    - 节点邻接链路带宽和
+    - 节点可用CPU
+    - 节点可用带宽和
+    - 目前映射状态: 0 占用, 1 已占用
+
+    scalar标量:
+
+    - 当前VN的虚拟节点个数
+    - 当前虚拟节点需要的带宽和
+    - 未映射的虚拟节点个数
+
+    不包括链路特征: 因为链路数量一般远大于节点数量
+
+2. Action
+    将VN映射过程解构成一系列的节点映射过程, 每次action只映射一个虚拟节点
+
+3. Reward
+    不使用显示目标函数(线性规划)或预先定义好的标签(监督学习), 而是通过不断地接受环境反馈的奖励reward
+
+    该奖励reward不是"correct"的确定性指标, 而是告诉agent当前action的好坏程度
+
+使用policy gradient来训练
+
+k = 3, 每个节点要考虑周围3步的邻居节点信息
+
 ## 3. 赵丽媛硕士论文 2020(Reinforcement Learning for Resource Mapping in 5G Network Slicing)
 
 state:
