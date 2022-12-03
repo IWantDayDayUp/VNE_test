@@ -5,7 +5,7 @@ from collections import namedtuple
 import pandas as pd
 
 import sys
-sys.path.append(r"D:\迅雷下载\new\VirtualNetworkEmbedding-main")
+# sys.path.append(r"D:\迅雷下载\new\VirtualNetworkEmbedding-main")
 
 from util import utils, config
 from data_loader import predata

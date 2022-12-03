@@ -25,8 +25,8 @@ class NetModel(BaseModel):
         super().__init__(solution, SN_Link, SN_Node, VN_Link, VN_Node, VN_Life)
 
     def get_solution(self,net, s_nodes, v_nodes, s_links, v_links,
-                     original_s_nodes,original_s_links
-                     ,batch_size=10,dropout=.5,alpha=.5,iter_time=config.iter_time,b=-1,longterm_rc=0.5):
+                     original_s_nodes, original_s_links
+                     ,batch_size=10, dropout=.5, alpha=.5, iter_time=config.iter_time, b=-1, longterm_rc=0.5):
         """
         :param s_nodes:
         :param v_nodes:
@@ -58,8 +58,10 @@ class NetModel(BaseModel):
             # print(net)
             net.to(device=device)
 
+        # 优化器
         ceiterion = torch.optim.SGD(net.parameters(), lr=1e-5,momentum=.9)
 
+        # 200次
         for i in range(iter_time):
             s_node_indexes, s_inputs = utils.get_shuffled_indexes_and_inputs(input=s_input, batch_size=batch_size)
             if config.IS_GPU:
@@ -73,7 +75,7 @@ class NetModel(BaseModel):
                 v_input=v_input
             )
 
-            # 检测node mapping solutions是否符合，若符合则进行链路映射
+            # 检测node mapping solutions是否符合, 若符合则进行链路映射
             embedding_successes, link_mapping_solutions, link_consumptions, hops = utils.get_hops_and_link_consumptions(
                 s_nodes=s_nodes,
                 s_links=s_links,
@@ -130,6 +132,7 @@ def run():
     # 网络模型
     net = LNet(nhidden=128, batch_size=10, nembedding=128, dropout=.5)
     print(net)
-    model.experience(net,data,load_model_path="LVne",full_request = config.full_request)
+    
+    model.experience(net, data, load_model_path="LVne", full_request = config.full_request)
 
 # run()

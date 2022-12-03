@@ -6,3 +6,6 @@ out
 
 # .csv
 *.csv
+
+# 忽略temp文件夹, 里面存放是临时文件
+temp

@@ -55,7 +55,7 @@ class LNet(torch.nn.Module):
         return (x - x.min()) / (x.max() - x.min())
 
 
-    def get_node_mapping(self,s_node_indexes,s_inputs,v_input):
+    def get_node_mapping(self, s_node_indexes, s_inputs, v_input):
 
         if config.IS_GPU:
             s_inputs = s_inputs.cuda()
@@ -158,6 +158,7 @@ class LNet(torch.nn.Module):
         for i in range(batch_size):
             for j in range(v_node_numbers):
                 original_node_mapping[i][j] = s_node_indexes[i][shuffled_node_mapping[i][j]]
+                
         return original_node_mapping, shuffled_node_mapping,output_weights
 
 def weights_init(m):

@@ -26,24 +26,21 @@ def run():
     # 读取数据e
     (solution, SN_Link, SN_Node, VN_Link, VN_Node, VN_Life) = predata.read_SN_VN(config.SnFile, config.VnFile)
 
-    # model = LModel(solution, SN_Link, SN_Node, VN_Link, VN_Node, VN_Life)
+    model = LModel(solution, SN_Link, SN_Node, VN_Link, VN_Node, VN_Life)
 
-    # data = {
-    #     "SN_Link": SN_Link,
-    #     "SN_Node": SN_Node,
-    #     "VN_Node": VN_Node,
-    #     "VN_Link": VN_Link,
-    #     "VN_Life": VN_Life,
-    #     "solution": solution
-    # }
+    data = {
+        "SN_Link": SN_Link,
+        "SN_Node": SN_Node,
+        "VN_Node": VN_Node,
+        "VN_Link": VN_Link,
+        "VN_Life": VN_Life,
+        "solution": solution
+    }
 
-    # net = LNet(nhidden=128, batch_size=10, nembedding=128, dropout=.5)
+    net = LNet(nhidden=128, batch_size=10, nembedding=128, dropout=.5)
 
-    # model.experience(net, data)
+    model.experience(net, data)
     # model.experience(data)  # 原版的
-    
-    for i in range(10):
-        print(VN_Life[0][i])
 
 if __name__ == "__main__":
     run()

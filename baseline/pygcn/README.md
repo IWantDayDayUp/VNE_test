@@ -1,4 +1,5 @@
-Graph Convolutional Networks in PyTorch
+# Graph Convolutional Networks in PyTorch
+
 ====
 
 PyTorch implementation of Graph Convolutional Networks (GCNs) for semi-supervised classification [1].
@@ -36,7 +37,7 @@ This implementation makes use of the Cora dataset from [2].
 
 Please cite our paper if you use this code in your own work:
 
-```
+```cmd
 @article{kipf2016semi,
   title={Semi-Supervised Classification with Graph Convolutional Networks},
   author={Kipf, Thomas N and Welling, Max},

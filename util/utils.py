@@ -33,14 +33,19 @@ def get_graph(link, node):
 # 给定nodes和links，生成网络的输入数据input
 def get_input(nodes, links):
     node_num = len(nodes)
+    
+    # 节点自身资源, 邻居节点之和, 邻居节点最小值, 邻居节点资源最大值
     node_resource = torch.Tensor(nodes).view(size=(node_num,))
     node_neighbour_link_resource_sum = torch.zeros(size=(node_num,))
     node_neighbour_link_resource_min = torch.zeros(size=(node_num,))
     node_neighbour_link_resource_max = torch.ones(size=(node_num,)) * config.INF
+    
     for link in links:
         u_node = link[0]
         v_node = link[1]
         bandwidth = link[2]
+        
+        # 更新节点资源特征: 总和, 最大值, 最小值等
         node_neighbour_link_resource_sum[u_node] += bandwidth
         node_neighbour_link_resource_sum[v_node] += bandwidth
         node_neighbour_link_resource_min[u_node] = min(node_neighbour_link_resource_min[u_node], bandwidth)
@@ -48,20 +53,23 @@ def get_input(nodes, links):
         node_neighbour_link_resource_max[u_node] = max(node_neighbour_link_resource_max[u_node], bandwidth)
         node_neighbour_link_resource_max[v_node] = max(node_neighbour_link_resource_max[v_node], bandwidth)
 
-    graph = get_graph(links,nodes)
+    graph = get_graph(links, nodes)
     graph = torch.FloatTensor(graph)
-    adj = torch.where(graph>0,torch.ones_like(graph),graph)
+    # 邻接矩阵
+    adj = torch.where(graph>0, torch.ones_like(graph), graph)
+    
     nfeat = adj.size(0)
-    nout = config.NCLASS
+    nout = config.NCLASS  # 默认: 3
     input = None
 
     graph_features = None
 
+    # 是否使用GCN聚合特征
     if config.IS_GCN:
         x = get_features(graph)
-        gcn = GCN(x.shape[1],nout)
-        graph_features = gcn(x,adj)
-
+        gcn = GCN(x.shape[1], nout)
+        graph_features = gcn(x, adj)
+    # 是否使用GAT聚合特征
     if config.IS_GAT:
         x = get_features(graph)
         gat = GAT(n_feat=x.shape[1],
@@ -99,6 +107,7 @@ def get_input(nodes, links):
         )
     else:
         input = graph_features
+        
     return input
 
 # 给定一个网络输入数据input，输出多个乱序的inputs

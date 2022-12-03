@@ -53,6 +53,7 @@ class NetModel(BaseModel):
                 s_node_indexes = s_node_indexes.cuda()
                 s_inputs = s_inputs.cuda()
                 v_input = v_input.cuda()
+                
             node_mapping_solutions, shuffled_node_mapping_solutions,output_weights = net.get_node_mapping(
                 s_node_indexes=s_node_indexes,
                 s_inputs=s_inputs,
