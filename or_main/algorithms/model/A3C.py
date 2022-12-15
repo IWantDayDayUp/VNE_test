@@ -125,6 +125,8 @@ class A3C_Model(nn.Module):
         """
         self.train()
         logits, values = self.forward(substrate_features, substrate_edge_index, vnr_features)
+        
+        # TD error
         td = v_t - values
         c_loss = td.pow(2)
 

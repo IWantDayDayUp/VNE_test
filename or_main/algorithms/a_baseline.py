@@ -177,6 +177,8 @@ class BaselineVNEAgent:
         )
         
         sorted_vnrs_and_node_embedding = []
+        
+        # 对当前时刻收集到的每一个VN尝试节点映射, 并分成映射成功与映射失败
         for vnr in sorted_vnrs:
             embedding_s_nodes = self.find_substrate_nodes(COPIED_SUBSTRATE, vnr)
 

@@ -23,17 +23,25 @@ class A3C_GCN_VNEAgent(BaselineVNEAgent):
         )
         self.local_model = local_model
         self.beta = beta
+        
         self.initial_s_CPU = []
         self.initial_s_bandwidth = []
+        
         self.count_node_mapping = 0
         self.action_count = 0
+        
         self.eligibility_trace = np.zeros(shape=(config.SUBSTRATE_NODES,))
+        
         self.a3c_gcn_agent = A3C_Model(
-            chev_conv_state_dim=config.NUM_SUBSTRATE_FEATURES, action_dim=config.SUBSTRATE_NODES
+            # chev_conv_state_dim=config.NUM_SUBSTRATE_FEATURES, action_dim=config.SUBSTRATE_NODES
+            chev_conv_state_dim=5, action_dim=100
         )
+        
         # self.a3c_gcn_agent = MLP_Model(
         #     chev_conv_state_dim=config.NUM_SUBSTRATE_FEATURES, action_dim=config.SUBSTRATE_NODES
         # )
+        
+        # load the model
         # self.new_model_path = os.path.join(model_save_path, "A3C_model_0421.pth")
         # self.a3c_gcn_agent.load_state_dict(torch.load(self.new_model_path))
 
@@ -113,6 +121,8 @@ class A3C_GCN_VNEAgent(BaselineVNEAgent):
         subset_S_per_v_node = {}  # 候选节点集合
         embedding_s_nodes = {}  # 节点映射结果
         already_embedding_s_nodes = []  # 已经被占用的底层节点集合
+        
+        # 0 表示还没被占用
         current_embedding_s_nodes = [0] * len(copied_substrate.net.nodes)
 
         # 将虚拟节点排序
@@ -123,7 +133,7 @@ class A3C_GCN_VNEAgent(BaselineVNEAgent):
 
         num_remain_v_node = 1
         
-        # 为每个虚拟选择底层节点
+        # 为每个虚拟节点选择底层节点
         for v_node_id, v_node_data, _ in sorted_v_nodes_with_node_ranking:
             # CPU需求, 位置需求
             v_cpu_demand = v_node_data['CPU']
@@ -142,7 +152,7 @@ class A3C_GCN_VNEAgent(BaselineVNEAgent):
             substrate_features, edge_index, vnr_features = self.get_state_information(
                 copied_substrate,
                 vnr,
-                current_embedding_s_nodes,
+                current_embedding_s_nodes,  # 表示每个底层节点的占用情况: 1 表示节点被占用, 0 表示节点还没被占用
                 v_node_id,
                 v_cpu_demand,
                 v_pending

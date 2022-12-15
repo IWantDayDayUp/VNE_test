@@ -126,7 +126,9 @@ NUM_VNR_FOR_TRAIN = 50
 config_parser = configparser.ConfigParser(defaults=None)
 read_ok = config_parser.read(os.path.join(PROJECT_HOME, "common", "config.ini"))
 
-# target_algorithms = config_parser.get('ALGORITHMS', 'TARGET_ALGORITHMS').split(', ')
+# print(config_parser.get('ALGORITHMS', 'TARGET_ALGORITHMS'))
+
+target_algorithms = config_parser.get('ALGORITHMS', 'TARGET_ALGORITHMS').split(', ')
 
 if 'GENERAL' in config_parser and 'SLACK_API_TOKEN' in config_parser['GENERAL']:
     SLACK_API_TOKEN = config_parser['GENERAL']['SLACK_API_TOKEN']

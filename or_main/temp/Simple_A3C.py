@@ -6,10 +6,10 @@ View more on my Chinese tutorial page [莫烦Python](https://morvanzhou.github.i
 
 import torch
 import torch.nn as nn
-from utils import v_wrap, set_init, push_and_pull, record
+from or_main.common.utils import v_wrap, set_init, push_and_pull, record
 import torch.nn.functional as F
 import torch.multiprocessing as mp
-from shared_adam import SharedAdam
+# from shared_adam import SharedAdam
 import gym
 import os
 
@@ -22,6 +22,26 @@ MAX_EP = 3000
 env = gym.make('CartPole-v0')
 N_S = env.observation_space.shape[0]
 N_A = env.action_space.n
+
+class SharedAdam(torch.optim.Adam):
+    """
+    优化器
+    """
+    def __init__(self, params, lr=1e-3, betas=(0.9, 0.99), eps=1e-8,
+                 weight_decay=0):
+        super(SharedAdam, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=weight_decay)
+        
+        # State initialization
+        for group in self.param_groups:
+            for p in group['params']:
+                state = self.state[p]
+                state['step'] = 0
+                state['exp_avg'] = torch.zeros_like(p.data)
+                state['exp_avg_sq'] = torch.zeros_like(p.data)
+
+                # share in memory
+                state['exp_avg'].share_memory_()
+                state['exp_avg_sq'].share_memory_()
 
 
 class Net(nn.Module):
