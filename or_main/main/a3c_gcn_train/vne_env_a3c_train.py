@@ -1,9 +1,20 @@
 import copy
-
+import os
+import sys
 import gym
 import networkx as nx
 import torch
 import torch_geometric
+
+current_path = os.path.dirname(os.path.realpath(__file__))
+PROJECT_HOME = os.path.abspath(os.path.join(current_path, os.pardir))
+root_dir = os.path.abspath(os.path.join(PROJECT_HOME, "../.."))
+
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
+
+if PROJECT_HOME not in sys.path:
+    sys.path.append(PROJECT_HOME)
 
 from or_main.common import config, utils
 from or_main.environments.vne_env import Substrate, VNR
@@ -250,6 +261,7 @@ class A3C_GCN_TRAIN_VNEEnvironment(gym.Env):
 
 
         # 이 지점에서 self.num_processed_v_nodes += 1 매우 중요: 이후 next_state 및 reward 계산에 영향을 줌
+        # 在此点上self.num_processed_v_nodes += 1 非常重要: 影响后续next_state和重新计算
         # 已处理的虚拟节点数
         self.num_processed_v_nodes += 1
 

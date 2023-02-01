@@ -5,18 +5,27 @@ import numpy as np
 import torch
 import torch.multiprocessing as mp
 
-from algorithms.g_a3c_gcn_vine import A3C_GCN_VNEAgent
-from algorithms.model.A3C import A3C_Model
-from common.logger import get_logger
-from main.a3c_gcn_train.vne_env_a3c_train import A3C_GCN_TRAIN_VNEEnvironment
-from algorithms.model.utils import check_gradient_nan_or_zero
-from common import config
-
 current_path = os.path.dirname(os.path.realpath(__file__))
+PROJECT_HOME = os.path.abspath(os.path.join(current_path, os.pardir))
+root_dir = os.path.abspath(os.path.join(PROJECT_HOME, "../.."))
+
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
+
+if PROJECT_HOME not in sys.path:
+    sys.path.append(PROJECT_HOME)
+
 PROJECT_HOME = os.path.abspath(os.path.join(current_path, os.pardir, os.pardir))
 if PROJECT_HOME not in sys.path:
     sys.path.append(PROJECT_HOME)
 
+from or_main.algorithms.g_a3c_gcn_vine import A3C_GCN_VNEAgent
+from or_main.algorithms.model.A3C import A3C_Model
+from or_main.main.a3c_gcn_train.vne_env_a3c_train import A3C_GCN_TRAIN_VNEEnvironment
+
+from or_main.common.logger import get_logger
+from or_main.algorithms.model.utils import check_gradient_nan_or_zero
+from common import config
 
 class Worker(mp.Process):
     def __init__(self, global_net, optimizer, global_episode, global_episode_reward, message_queue, idx):
@@ -24,27 +33,34 @@ class Worker(mp.Process):
         self.name = 'worker-{0}'.format(idx)
 
         self.optimizer = optimizer
+        
         self.global_net = global_net
+        
         self.global_episode = global_episode
         self.global_episode_reward = global_episode_reward
+        
         self.message_queue = message_queue
+        
         self.max_episode_reward = 0
 
         self.local_model = A3C_Model(
-            chev_conv_state_dim=config.NUM_SUBSTRATE_FEATURES, action_dim=config.SUBSTRATE_NODES
+            chev_conv_state_dim=config.NUM_SUBSTRATE_FEATURES,  # 5
+            action_dim=config.SUBSTRATE_NODES  # 100
         )
 
         logger_a3c_gcn_train = get_logger("a3c_gcn_train", PROJECT_HOME)
 
         self.env = A3C_GCN_TRAIN_VNEEnvironment(logger_a3c_gcn_train)
+        
         self.agent = A3C_GCN_VNEAgent(
-            self.local_model, beta=0.3,
+            self.local_model,  # 这里指定了 A3Cmodel, 在使用时(已经训练好之后)并没有指定该参数
+            beta=0.3,
             logger=logger_a3c_gcn_train,
-            time_window_size=config.TIME_WINDOW_SIZE,
-            agent_type=config.ALGORITHMS.BASELINE,
-            type_of_virtual_node_ranking=config.TYPE_OF_VIRTUAL_NODE_RANKING.TYPE_2,
-            allow_embedding_to_same_substrate_node=config.ALLOW_EMBEDDING_TO_SAME_SUBSTRATE_NODE,
-            max_embedding_path_length=config.MAX_EMBEDDING_PATH_LENGTH
+            time_window_size=config.TIME_WINDOW_SIZE,  # 1
+            agent_type=config.ALGORITHMS.BASELINE,  # "BL"
+            type_of_virtual_node_ranking=config.TYPE_OF_VIRTUAL_NODE_RANKING.TYPE_2,  # 1
+            allow_embedding_to_same_substrate_node=config.ALLOW_EMBEDDING_TO_SAME_SUBSTRATE_NODE,  # false
+            max_embedding_path_length=config.MAX_EMBEDDING_PATH_LENGTH  # 4
         )
 
         self.critic_loss = 0.0
@@ -53,11 +69,13 @@ class Worker(mp.Process):
     def run(self):
         time_step = 0
         total_step = 0
+        
         latest_50_episode_rewards = []
         mean_50_episode_reward = 0
         previous_50_episode_reward = 0
 
-        while self.global_episode.value < config.MAX_EPISODES:
+        # while self.global_episode.value < config.MAX_EPISODES:  # 50000
+        while self.global_episode.value < 300:  # 50000
             state = self.env.reset()
             done = False
 
